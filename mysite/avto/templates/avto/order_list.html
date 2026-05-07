@@ -1,0 +1,25 @@
+{% extends 'avto/base.html' %}
+{% block title %}Мои заказы{% endblock %}
+{% block content %}
+<h1>Мои заказы</h1>
+{% for order in orders %}
+  <div class="card mb-3">
+    <div class="card-header">{{ order }} — {{ order.get_status_display }}</div>
+    <div class="card-body">
+      <p class="text-muted">{{ order.created_at|date:"d.m.Y H:i" }}</p>
+      <ul>
+      {% for item in order.items.all %}
+        <li><a href="{{ item.car.get_absolute_url }}">{{ item.car }}</a></li>
+      {% endfor %}
+      </ul>
+      <a href="{% url 'order_pdf' order.id %}" 
+        class="btn btn-sm btn-outline-danger mt-2" 
+        target="_blank">
+        📄 Скачать квитанцию PDF
+      </a>
+    </div>
+  </div>
+{% empty %}
+  <p class="text-muted">У вас пока нет заказов.</p>
+{% endfor %}
+{% endblock %}

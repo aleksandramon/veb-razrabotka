@@ -1,0 +1,22 @@
+{% load car_tags %}
+{% if cars %}
+<div class="row row-cols-1 row-cols-md-4 g-3">
+    {% for car in cars %}
+    <div class="col">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body p-2">
+                <p class="mb-1 fw-semibold small">{{ car }}</p>
+                <p class="text-success small mb-0">{{ car.price|rubles }}</p>
+            </div>
+            <div class="card-footer p-2 bg-transparent">
+                <a href="{{ car.get_absolute_url }}" class="btn btn-outline-primary btn-sm w-100">
+                    Смотреть
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-muted small">Нет новых поступлений.</p>
+{% endif %}

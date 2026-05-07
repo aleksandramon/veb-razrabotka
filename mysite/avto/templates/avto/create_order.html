@@ -1,0 +1,10 @@
+{% extends 'avto/base.html' %}
+{% block title %}Бронирование{% endblock %}
+{% block content %}
+<h1>Забронировать {{ car }}</h1>
+<p class="fw-bold">{{ car.price }} ₽</p>
+<form method="post">{% csrf_token %}
+  <button type="submit" class="btn btn-primary">Подтвердить бронь</button>
+  <a href="{{ car.get_absolute_url }}" class="btn btn-secondary ms-2">Отмена</a>
+</form>
+{% endblock %}

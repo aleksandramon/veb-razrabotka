@@ -1,0 +1,13 @@
+{% extends 'avto/base.html' %}
+{% block title %}Удалить услугу{% endblock %}
+{% block content %}
+<div class="card border-danger"><div class="card-header bg-danger text-white">Подтверждение удаления</div>
+  <div class="card-body">
+    <p>Удалить услугу <strong>{{ service.name }}</strong>?</p>
+    <form method="post">{% csrf_token %}
+      <button type="submit" class="btn btn-danger">Удалить</button>
+      <a href="{% url 'service_list' %}" class="btn btn-secondary ms-2">Отмена</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

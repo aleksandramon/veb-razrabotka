@@ -1,0 +1,158 @@
+{% extends 'avto/base.html' %}
+{% block title %}Автомобили{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1>Автомобили в продаже</h1>
+  {% if user.is_staff %}
+    <a href="{% url 'car_create' %}" class="btn btn-success">+ Добавить автомобиль</a>
+  {% endif %}
+</div>
+
+{# Фильтры #}
+<form method="get" class="row g-2 mb-4">
+  <div class="col-md-3">
+    <input type="text" name="brand" class="form-control" 
+       placeholder="Марка" value="{{ brand_filter }}"
+       list="brands-list">
+    <datalist id="brands-list">
+      {% for brand in all_brands %}
+        <option value="{{ brand }}">
+      {% endfor %}
+    </datalist>
+  </div>
+  <div class="col-md-2">
+    <input type="number" name="min_price" class="form-control" placeholder="Цена от" value="{{ min_price }}">
+  </div>
+  <div class="col-md-2">
+    <input type="number" name="max_price" class="form-control" placeholder="Цена до" value="{{ max_price }}">
+  </div>
+  <div class="col-md-2">
+    <select name="sort" class="form-select">
+      <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Новые</option>
+      <option value="price" {% if sort == 'price' %}selected{% endif %}>Цена ↑</option>
+      <option value="-price" {% if sort == '-price' %}selected{% endif %}>Цена ↓</option>
+      <option value="brand" {% if sort == 'brand' %}selected{% endif %}>Марка</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <button type="submit" class="btn btn-primary w-100">Найти</button>
+  </div>
+</form>
+<form method="get" class="row g-2 mb-2">
+  <div class="col-md-4">
+    <input type="text" name="model" class="form-control"
+           placeholder="Модель" value="{{ model_filter }}">
+  </div>
+  <div class="col-md-2">
+    <button type="submit" class="btn btn-outline-secondary w-100">Поиск по модели</button>
+  </div>
+</form>
+
+{# Статистика #}
+{% if stats.total %}
+<div class="row mb-3">
+  <div class="col"><div class="card text-center p-2"><small>Всего</small><strong>{{ stats.total }}</strong></div></div>
+  <div class="col"><div class="card text-center p-2"><small>Средняя цена</small><strong>{{ stats.avg_price|floatformat:0 }} ₽</strong></div></div>
+  <div class="col"><div class="card text-center p-2"><small>Мин. цена</small><strong>{{ stats.min_price }} ₽</strong></div></div>
+  <div class="col"><div class="card text-center p-2"><small>Макс. цена</small><strong>{{ stats.max_price }} ₽</strong></div></div>
+</div>
+{% endif %}
+{# count() и exists() #}
+<div class="row mb-3">
+  <div class="col-md-3">
+    <div class="card text-center p-2">
+      <strong>Найдено: {{ total_count }}</strong>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center p-2">
+      <strong>{% if has_results %}Есть результаты{% else %}Ничего не найдено{% endif %}</strong>
+    </div>
+  </div>
+</div>
+
+{% if price_data %}
+<div class="mb-3">
+  <small class="text-muted fw-bold">топ марок в каталоге:</small>
+  <div class="d-flex gap-2 flex-wrap mt-1">
+    {% for item in price_data %}
+      <span class="badge bg-secondary">
+        {{ item.brand }} — {{ item.count }} авто, ср. {{ item.avg_price|floatformat:0 }} ₽
+      </span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if all_brands %}
+<div class="mb-3">
+  <small class="text-muted fw-bold">все марки в каталоге:</small>
+  <div class="d-flex gap-2 flex-wrap mt-1">
+    {% for brand in all_brands %}
+      <span class="badge bg-dark">{{ brand }}</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if cars_limited %}
+<div class="mb-4">
+  <small class="text-muted fw-bold">последние 5 добавленных автомобилей:</small>
+  <div class="d-flex gap-2 flex-wrap mt-1">
+    {% for car in cars_limited %}
+      <span class="badge bg-primary">{{ car.brand }} {{ car.model }} ({{ car.year }})</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="row">
+{% for car in cars %}
+  <div class="col-md-4 mb-4">
+    <div class="card h-100">
+        {% with car.images.first as main_image %}
+            {% if main_image %}
+                <img src="{{ main_image.image.url }}" 
+                    alt="{{ car }}" 
+                    class="card-img-top" 
+                    style="height: 200px; object-fit: cover;">
+            {% endif %}
+        {% endwith %}
+      <div class="card-body">
+        <h5 class="card-title">{{ car.brand }} {{ car.model }}</h5>
+        <p class="card-text text-muted">{{ car.year }} г. | {{ car.get_status_display }}</p>
+        <p class="card-text fw-bold">{{ car.price }} ₽</p>
+        {# prefetch_related: обращение к M2M без доп. запросов #}
+        {% if car.equipment_packages.all %}
+          <p class="card-text">
+            <small class="text-muted">Пакеты: {% for p in car.equipment_packages.all %}{{ p.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</small>
+          </p>
+        {% endif %}
+        <a href="{{ car.get_absolute_url }}" class="btn btn-outline-primary btn-sm">Подробнее</a>
+        {% if user.is_staff %}
+          <a href="{% url 'car_edit' car.id %}" class="btn btn-outline-secondary btn-sm">Изменить</a>
+          <a href="{% url 'car_delete' car.id %}" class="btn btn-outline-danger btn-sm">Удалить</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% empty %}
+  <p class="text-muted">Автомобили не найдены.</p>
+{% endfor %}
+</div>
+
+{# Пагинация #}
+{% if cars.has_other_pages %}
+<nav>
+  <ul class="pagination">
+    {% if cars.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ cars.previous_page_number }}">«</a></li>{% endif %}
+    {% for num in cars.paginator.page_range %}
+      <li class="page-item {% if cars.number == num %}active{% endif %}">
+        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+      </li>
+    {% endfor %}
+    {% if cars.has_next %}<li class="page-item"><a class="page-link" href="?page={{ cars.next_page_number }}">»</a></li>{% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'avto/base.html' %}
+{% block title %}Пакеты на автомобилях (through){% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1>Пакеты оборудования (ManyToManyField through)</h1>
+  {% if user.is_authenticated %}
+    <a href="{% url 'package_create' %}" class="btn btn-success">+ Добавить связь</a>
+  {% endif %}
+</div>
+<table class="table table-bordered">
+  <thead class="table-dark">
+    <tr><th>Автомобиль</th><th>Пакет оборудования</th><th>Статус установки</th><th>Дата установки</th><th>Примечания</th><th>Действия</th></tr>
+  </thead>
+  <tbody>
+  {% for cp in packages %}
+    <tr>
+      <td>{{ cp.car }}</td>         {# select_related('car') — нет доп. запроса #}
+      <td>{{ cp.package }}</td>     {# select_related('package') — нет доп. запроса #}
+      <td><span class="badge bg-primary">{{ cp.get_status_display }}</span></td>
+      <td>{{ cp.installed_at|default:"-" }}</td>
+      <td>{{ cp.notes|default:"-" }}</td>
+      <td>
+        {% if user.is_authenticated %}
+          <a href="{% url 'package_edit' cp.pk %}" class="btn btn-sm btn-secondary">Изм.</a>
+          <a href="{% url 'package_delete' cp.pk %}" class="btn btn-sm btn-danger">Удал.</a>
+        {% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6" class="text-center text-muted">Нет записей. Добавьте первую связь авто-пакет.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

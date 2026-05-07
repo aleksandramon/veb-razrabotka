@@ -1,0 +1,15 @@
+{% extends 'avto/base.html' %}
+{% block title %}Удалить автомобиль{% endblock %}
+{% block content %}
+<div class="card border-danger">
+  <div class="card-header bg-danger text-white">Подтверждение удаления</div>
+  <div class="card-body">
+    <p>Вы уверены, что хотите удалить <strong>{{ car }}</strong>?</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Да, удалить</button>
+      <a href="{% url 'car_list' %}" class="btn btn-secondary ms-2">Отмена</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

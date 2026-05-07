@@ -1,0 +1,11 @@
+{% extends 'avto/base.html' %}
+{% block title %}Запись на услугу{% endblock %}
+{% block content %}
+<h1>Записаться: {{ service.name }}</h1>
+<p>{{ service.description }}</p>
+<p class="fw-bold">Цена: {{ service.price }} ₽</p>
+<form method="post">{% csrf_token %}
+  <button type="submit" class="btn btn-primary">Подтвердить запись</button>
+  <a href="{% url 'service_list' %}" class="btn btn-secondary ms-2">Отмена</a>
+</form>
+{% endblock %}

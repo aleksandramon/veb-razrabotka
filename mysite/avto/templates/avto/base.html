@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -6,38 +7,59 @@
     <title>{% block title %}АвтоСалон{% endblock %}</title>
     {{ form.media }}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'avto/style.css' %}">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-  <div class="container">
-    <a class="navbar-brand" href="{% url 'car_list' %}">🚗 АвтоСалон</a>
-    <div class="navbar-nav ms-auto">
-      <a class="nav-link" href="{% url 'car_list' %}">Автомобили</a>
-      <a class="nav-link" href="{% url 'service_list' %}">Услуги</a>
-      <a class="nav-link" href="{% url 'package_list' %}">Пакеты (through)</a>
-      {% if user.is_authenticated %}
-        <a class="nav-link" href="{% url 'order_list' %}">Заказы</a>
-        <a class="nav-link" href="{% url 'favorites' %}">Избранное</a>
-        {% if user.is_staff %}
-          <a class="nav-link" href="{% url 'car_create' %}">+ Авто</a>
-          <a class="nav-link" href="{% url 'service_create' %}">+ Услуга</a>
-        {% endif %}
-        <a class="nav-link" href="{% url 'logout' %}">Выйти ({{ user.username }})</a>
-      {% else %}
-        <a class="nav-link" href="{% url 'login' %}">Войти</a>
-        <a class="nav-link" href="{% url 'register' %}">Регистрация</a>
-      {% endif %}
+<a class="skip-link" href="#main-content">Перейти к содержимому</a>
+
+<header class="ks-header" role="banner">
+    <div class="ks-header-inner">
+
+        <a href="{% url 'home' %}" class="ks-logo" aria-label="На главную страницу KaidoSpirit">
+            <span class="ks-logo-text">KaidoSpirit</span>
+        </a>
+
+        <nav class="ks-nav" aria-label="Основная навигация">
+            <a href="{% url 'home' %}">Главная</a>
+            <a href="{% url 'car_list' %}">Автомобили</a>
+            <a href="{% url 'service_list' %}">Услуги</a>
+            <a href="{% url 'favorites' %}">Избранное</a>
+            <a href="{% url 'order_list' %}">Заказы</a>
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="btn-nav-accent">Выйти</a>
+            {% else %}
+                <a href="{% url 'login' %}">Вход</a>
+                <a href="{% url 'register' %}" class="btn-nav-accent">Регистрация</a>
+            {% endif %}
+        </nav>
     </div>
-  </div>
-</nav>
-<div class="container">
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-info">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
-  {% block content %}{% endblock %}
-</div>
+</header>
+
+<main id="main-content" class="ks-main" role="main">
+    {% block content %}{% endblock %}
+</main>
+<footer class="ks-footer" role="contentinfo">
+    <div class="ks-footer-inner">
+
+        <div>
+            <div class="ks-footer-label">KaidoSpirit</div>
+            <div>Японские автомобили и реставрация культовых моделей.</div>
+        </div>
+
+        <div class="ks-footer-center">
+            <div>KaidoSpirit</div>
+            <span>© 2026 Все права защищены</span>
+        </div>
+
+        <div class="ks-footer-right">
+            <a href="{% url 'home' %}">Главная</a><br>
+            <a href="{% url 'car_list' %}">Каталог</a><br>
+            <a href="{% url 'service_list' %}">Услуги</a>
+        </div>
+
+    </div>
+</footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

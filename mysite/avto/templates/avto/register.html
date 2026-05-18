@@ -1,23 +1,24 @@
 {% extends 'avto/base.html' %}
-{% block title %}Регистрация{% endblock %}
+{% block title %}Регистрация — Kaido Spirit{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-5">
-    <h1>Регистрация</h1>
-    <div class="alert alert-info"><strong>Задание 6:</strong> <code>def save(self, commit=True)</code> в RegistrationForm.</div>
-    <div class="card"><div class="card-body">
-      <form method="post">{% csrf_token %}
-        {% for field in form %}
-          <div class="mb-3">
-            <label class="form-label">{{ field.label }}</label>
-            {{ field }}
-            {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-          </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
-      </form>
-    </div></div>
-    <p class="mt-3 text-center">Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a></p>
+<div class="ks-auth-wrap">
+  <h1 class="ks-auth-title">Регистрация</h1>
+  <div class="ks-form-card">
+    <form method="post">{% csrf_token %}
+      {% for field in form %}
+        <div class="ks-form-group">
+          <label class="ks-label">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}
+            <div style="color:var(--crimson);font-size:0.8rem;margin-top:4px;">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <button class="btn-ks btn-ks-lg" type="submit" style="width:100%;margin-top:8px;">Зарегистрироваться</button>
+    </form>
   </div>
+  <p style="text-align:center;margin-top:18px;font-style:italic;color:var(--text-muted);">
+    Или <a href="{% url 'login' %}">войти</a>
+  </p>
 </div>
 {% endblock %}

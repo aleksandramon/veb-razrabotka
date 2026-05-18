@@ -1,0 +1,250 @@
+{% extends 'avto/base.html' %}
+{% load static %}
+{% block title %}Kaido Spirit — Винтажные автомобили{% endblock %}
+
+{% block content %}
+
+{# ══ HERO ══ #}
+<div class="ks-hero">
+  <div class="ks-hero-eyebrow">Автомобили 1980-2000 годов</div>
+  <h1 class="ks-hero-title">Дух дорог</h1>
+  <p class="ks-hero-subtitle">Редкие модели, бережно восстановленные и превращённые в подлинные артефакты эпохи.</p>
+  <div class="ks-hero-stats">
+    <div>
+      <div class="ks-hero-stat-val">{{ stats.total_cars }}</div>
+      <div class="ks-hero-stat-label">Авто в продаже</div>
+    </div>
+    <div>
+      <div class="ks-hero-stat-val">{{ stats.total_services }}</div>
+      <div class="ks-hero-stat-label">Услуги</div>
+    </div>
+    <div>
+      <div class="ks-hero-stat-val">{{ stats.total_reviews }}</div>
+      <div class="ks-hero-stat-label">Отзывы</div>
+    </div>
+    {% if stats.avg_rating %}
+    <div>
+      <div class="ks-hero-stat-val">{{ stats.avg_rating|floatformat:1 }}★</div>
+      <div class="ks-hero-stat-label">Рейтинг</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{# ══ SEARCH WIDGET ══ #}
+<div class="ks-search-widget">
+  <div class="ks-search-widget-title">🔍 Найти автомобиль</div>
+  <form method="get" action="{% url 'home' %}">
+    <div class="ks-search-grid">
+      <div>
+        <label class="ks-label">Марка</label>
+        <input class="ks-input" type="text" name="q_brand"
+               placeholder="Toyota, Nissan…"
+               value="{{ q_brand }}" list="brands-dl">
+        <datalist id="brands-dl">
+          {% for brand in all_brands %}<option value="{{ brand }}">{% endfor %}
+        </datalist>
+      </div>
+      <div>
+        <label class="ks-label">Модель</label>
+        <input class="ks-input" type="text" name="q_model"
+               placeholder="Supra, Silvia…"
+               value="{{ q_model }}">
+      </div>
+      <div>
+        <label class="ks-label">Цена до (₽)</label>
+        <input class="ks-input" type="number" name="q_max_price"
+               placeholder="2 000 000"
+               value="{{ q_max_price }}">
+      </div>
+      <div>
+        <label class="ks-label">Сортировка</label>
+        <select class="ks-select" name="q_sort">
+          <option value="-created_at" {% if q_sort == '-created_at' %}selected{% endif %}>Сначала новые</option>
+          <option value="price"       {% if q_sort == 'price'       %}selected{% endif %}>Цена ↑</option>
+          <option value="-price"      {% if q_sort == '-price'      %}selected{% endif %}>Цена ↓</option>
+          <option value="year"        {% if q_sort == 'year'        %}selected{% endif %}>Год ↑</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:flex-end;">
+        <button class="btn-ks btn-ks-lg" type="submit" style="width:100%;">Найти</button>
+      </div>
+    </div>
+  </form>
+
+  {% if search_performed %}
+    {% if search_results %}
+      <div class="ks-search-results">
+        <div class="ks-search-results-title">Найдено: {{ search_results|length }}</div>
+        {% for car in search_results %}
+          <a href="{% url 'car_detail' car.id %}" class="ks-search-result-row">
+            <span class="sr-name">{{ car.brand }} {{ car.model }}</span>
+            <span class="sr-year">{{ car.year }} г.</span>
+            {% if car.status == 'SL' %}
+              <span class="ks-badge ks-badge-green">В продаже</span>
+            {% else %}
+              <span class="ks-badge ks-badge-muted">Забронирован</span>
+            {% endif %}
+            <span class="sr-price">{{ car.price|floatformat:0 }} ₽</span>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="ks-no-results">По вашему запросу ничего не найдено — попробуйте изменить параметры.</div>
+    {% endif %}
+  {% endif %}
+</div>
+
+{# ══ WIDGETS 2-COL ══ #}
+<div class="ks-widget-grid">
+
+  {# WIDGET 1: ТОП по рейтингу #}
+  <div class="ks-widget">
+    <div class="ks-widget-header">
+      <span class="ks-widget-title">🏆 Самый популярный автомобиль</span>
+      <a href="{% url 'car_list' %}" class="ks-widget-more">Весь каталог →</a>
+    </div>
+    <div class="ks-widget-body">
+      {% if top_cars %}
+        {% for car in top_cars %}
+          <a href="{% url 'car_detail' car.id %}" class="ks-wrow">
+            <span class="ks-wrow-rank">{{ forloop.counter }}.</span>
+            {% with car.images.first as img %}
+              {% if img %}<img src="{{ img.image.url }}" class="ks-wrow-thumb" alt="{{ car }}">
+              {% else %}<div class="ks-wrow-thumb-ph">🚗</div>{% endif %}
+            {% endwith %}
+            <div class="ks-wrow-info">
+              <div class="ks-wrow-name">{{ car.brand }} {{ car.model }}</div>
+              <div class="ks-wrow-meta">{{ car.year }} г. · {{ car.review_count }} отзыв · {{ car.avg_rating|floatformat:1 }}★</div>
+            </div>
+            <span class="ks-wrow-price">{{ car.price|floatformat:0 }} ₽</span>
+            {% if user.is_authenticated %}
+              <form method="post" action="{% url 'toggle_favorite' car.id %}"
+                    style="display:inline;" onclick="event.stopPropagation();this.submit();return false;">
+                {% csrf_token %}
+                <button class="ks-fav-btn" type="submit" title="В избранное">♡</button>
+              </form>
+            {% endif %}
+          </a>
+        {% endfor %}
+      {% else %}
+        <div class="ks-empty">Пока нет авто с отзывами</div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# WIDGET 2: Услуги по реставрации #}
+  <div class="ks-widget">
+    <div class="ks-widget-header">
+      <span class="ks-widget-title">🔧 Услуги по реставрации</span>
+      <a href="{% url 'service_list' %}" class="ks-widget-more">Все услуги →</a>
+    </div>
+    <div class="ks-widget-body">
+      {% if services %}
+        {% for service in services %}
+          <div class="ks-srow">
+            <div>
+              <div class="ks-srow-name">{{ service.name }}</div>
+              <div class="ks-srow-desc">{{ service.description|truncatechars:70 }}</div>
+            </div>
+            <div class="ks-srow-right">
+              <span class="ks-srow-price">{{ service.price|floatformat:0 }} ₽</span>
+              {% if user.is_authenticated %}
+                <a href="{% url 'book_service' service.id %}" class="btn-ks btn-ks-sm">Записаться</a>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="ks-empty">Услуги не добавлены</div>
+      {% endif %}
+      <div style="padding:12px 22px;border-top:1px solid var(--border);font-size:0.8rem;color:var(--text-muted);font-style:italic;">
+        Средняя стоимость услуги: {{ stats.avg_service_price|floatformat:0 }} ₽
+      </div>
+    </div>
+  </div>
+
+  {# WIDGET 3: Последние отзывы #}
+  <div class="ks-widget">
+    <div class="ks-widget-header">
+      <span class="ks-widget-title">💬 Отзывы клиентов</span>
+      {% if stats.avg_rating %}<span class="ks-widget-more">Ср. рейтинг: {{ stats.avg_rating|floatformat:1 }} ★</span>{% endif %}
+    </div>
+    <div class="ks-widget-body">
+      {% if latest_reviews %}
+        {% for review in latest_reviews %}
+          <div class="ks-rrow">
+            <div class="ks-rrow-top">
+              <a href="{% url 'car_detail' review.car.id %}" style="text-decoration:none;">
+                <span class="ks-rrow-car">{{ review.car.brand }} {{ review.car.model }}</span>
+              </a>
+              <span class="ks-rrow-author">{{ review.user.username }} · {{ review.created_at|date:"d.m.Y" }}</span>
+            </div>
+            <div class="ks-stars">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
+            <div class="ks-rrow-text">{{ review.comment }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="ks-empty">Отзывов пока нет</div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# WIDGET 4: Самый популярный аукционный лот (по избранным) #}
+  <div class="ks-widget">
+    <div class="ks-widget-header">
+      <span class="ks-widget-title">❤️ Самый популярный аукционный лот</span>
+      <a href="{% url 'car_list' %}" class="ks-widget-more">К каталогу →</a>
+    </div>
+    <div class="ks-widget-body">
+      {% if fav_cars %}
+        {% for car in fav_cars %}
+          <a href="{% url 'car_detail' car.id %}" class="ks-wrow">
+            <span class="ks-wrow-rank">{{ forloop.counter }}.</span>
+            {% with car.images.first as img %}
+              {% if img %}<img src="{{ img.image.url }}" class="ks-wrow-thumb" alt="{{ car }}">
+              {% else %}<div class="ks-wrow-thumb-ph">🏎️</div>{% endif %}
+            {% endwith %}
+            <div class="ks-wrow-info">
+              <div class="ks-wrow-name">{{ car.brand }} {{ car.model }}</div>
+              <div class="ks-wrow-meta">{{ car.year }} г. · ❤️ {{ car.fav_count }}</div>
+            </div>
+            <span class="ks-wrow-price">{{ car.price|floatformat:0 }} ₽</span>
+          </a>
+        {% endfor %}
+      {% else %}
+        <div class="ks-empty">Никто пока не добавил авто в избранное</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{# ══ NEWEST CARS ══ #}
+<div class="ks-widget" style="margin-bottom:48px;">
+  <div class="ks-widget-header">
+    <span class="ks-widget-title">🆕 Новые поступления</span>
+    <a href="{% url 'car_list' %}" class="ks-widget-more">Весь каталог →</a>
+  </div>
+  {% if newest_cars %}
+    <div class="ks-newest-grid">
+      {% for car in newest_cars %}
+        <a href="{% url 'car_detail' car.id %}" class="ks-newest-card">
+          {% with car.images.first as img %}
+            {% if img %}<img src="{{ img.image.url }}" class="ks-newest-img" alt="{{ car }}">
+            {% else %}<div class="ks-newest-img-ph">🚗</div>{% endif %}
+          {% endwith %}
+          <div class="ks-newest-body">
+            <div class="ks-newest-name">{{ car.brand }} {{ car.model }}</div>
+            <div class="ks-newest-year">{{ car.year }} г.</div>
+            <div class="ks-newest-price">{{ car.price|floatformat:0 }} ₽</div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="ks-empty">Авто не добавлены</div>
+  {% endif %}
+</div>
+
+{% endblock %}

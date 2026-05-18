@@ -24,6 +24,104 @@ from .models import (
 from .forms import CarForm, ServiceForm, ReviewForm, CarEquipmentPackageForm, RegistrationForm, OrderForm
 
 
+def home(request):
+    return render(request, 'avto/home.html')
+
+    q_brand = request.GET.get('q_brand', '').strip()
+    q_model = request.GET.get('q_model', '').strip()
+    q_max_price = request.GET.get('q_max_price', '').strip()
+    q_sort = request.GET.get('q_sort', '-created_at')
+    search_performed = any([q_brand, q_model, q_max_price])
+
+    search_results = []
+    if search_performed:
+        qs = Car.objects.exclude(status='AR')
+        if q_brand:
+            qs = qs.filter(brand__icontains=q_brand)
+        if q_model:
+            qs = qs.filter(model__icontains=q_model)
+        if q_max_price and q_max_price.isdigit():
+            qs = qs.filter(price__lte=int(q_max_price))
+        sort_map = {
+            'price': 'price', '-price': '-price',
+            'year': 'year', '-created_at': '-created_at',
+        }
+        qs = qs.order_by(sort_map.get(q_sort, '-created_at'))
+        search_results = list(qs[:20])
+
+    top_cars = (
+        Car.objects
+        .filter(status='SL')
+        .annotate(
+            review_count=Count('reviews'),
+            avg_rating=Avg('reviews__rating'),
+        )
+        .filter(review_count__gt=0)
+        .order_by('-avg_rating', '-review_count')
+        .prefetch_related('images')[:5]
+    )
+
+    services = Service.objects.all().order_by('price')[:6]
+
+    latest_reviews = (
+        Review.objects
+        .exclude(rating__lt=1)
+        .select_related('user', 'car')
+        .order_by('-created_at')[:5]
+    )
+
+    package_stats = (
+        CarEquipmentPackage.objects
+        .filter(status='AVAILABLE')
+        .values('package__name', 'package__package_type')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:6]
+    )
+
+    fav_cars = (
+        Car.objects
+        .filter(status='SL')
+        .annotate(fav_count=Count('favorited_by'))
+        .filter(fav_count__gt=0)
+        .order_by('-fav_count')
+        .prefetch_related('images')[:5]
+    )
+
+    newest_cars = (
+        Car.objects
+        .filter(status='SL')
+        .order_by('-created_at')
+        .prefetch_related('images')[:8]
+    )
+
+    stats = {
+        'total_cars': Car.objects.filter(status='SL').count(),
+        'total_services': Service.objects.count(),
+        'total_reviews': Review.objects.count(),
+        'avg_rating': Review.objects.aggregate(a=Avg('rating'))['a'] or 0,
+        'avg_service_price': Service.objects.aggregate(a=Avg('price'))['a'] or 0,
+    }
+
+    all_brands = Car.objects.values_list('brand', flat=True).distinct().order_by('brand')
+
+    return render(request, 'avto/home.html', {
+        'q_brand': q_brand,
+        'q_model': q_model,
+        'q_max_price': q_max_price,
+        'q_sort': q_sort,
+        'search_performed': search_performed,
+        'search_results': search_results,
+        'top_cars': top_cars,
+        'services': services,
+        'latest_reviews': latest_reviews,
+        'package_stats': package_stats,
+        'newest_cars': newest_cars,
+        'fav_cars': fav_cars,
+        'stats': stats,
+        'all_brands': all_brands,
+    })
+
+
 def car_list(request):
     cars = Car.objects.all()
     brand_filter = request.GET.get('brand', '')

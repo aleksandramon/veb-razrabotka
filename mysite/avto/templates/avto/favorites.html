@@ -1,20 +1,32 @@
 {% extends 'avto/base.html' %}
-{% block title %}Избранное{% endblock %}
+{% block title %}Избранное — Kaido Spirit{% endblock %}
 {% block content %}
-<h1>Избранное</h1>
-{% for fav in favorites %}
-  <div class="col-md-4 mb-3">
-    <div class="card">
-      <div class="card-body">
-        <h5>{{ fav.car }}</h5>
-        <p>{{ fav.car.price }} ₽</p>
-        <a href="{{ fav.car.get_absolute_url }}" class="btn btn-sm btn-primary">Подробнее</a>
-        <a href="{% url 'toggle_favorite' fav.car.id %}" class="btn btn-sm btn-outline-danger">Убрать</a>
+
+<h1 class="page-title">Избранное</h1>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:22px;">
+  {% for fav in favorites %}
+    <div class="ks-card">
+      {% with fav.car.images.first as img %}
+        {% if img %}<img src="{{ img.image.url }}" class="ks-card-img" alt="{{ fav.car }}">
+        {% else %}<div class="ks-card-img-placeholder">🚗</div>{% endif %}
+      {% endwith %}
+      <div class="ks-card-body">
+        <div class="ks-card-title">{{ fav.car.brand }} {{ fav.car.model }}</div>
+        <div class="ks-card-sub">{{ fav.car.year }} г.</div>
+        <div class="ks-card-footer">
+          <span class="ks-price">{{ fav.car.price|floatformat:0 }} ₽</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <a href="{{ fav.car.get_absolute_url }}" class="btn-ks btn-ks-sm">Подробнее</a>
+          <form method="post" action="{% url 'toggle_favorite' fav.car.id %}">{% csrf_token %}
+            <button class="btn-ks btn-ks-outline btn-ks-sm" type="submit">Убрать ✕</button>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
-{% empty %}
-  <p class="text-muted">В избранном пусто.</p>
-{% endfor %}
+  {% empty %}
+    <div class="ks-empty" style="grid-column:1/-1;">В избранном пусто. <a href="{% url 'car_list' %}">Посмотреть каталог</a></div>
+  {% endfor %}
 </div>
 {% endblock %}

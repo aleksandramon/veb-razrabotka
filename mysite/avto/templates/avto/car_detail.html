@@ -1,87 +1,144 @@
 {% extends 'avto/base.html' %}
-{% block title %}{{ car }}{% endblock %}
+{% block title %}{{ car.brand }} {{ car.model }} — Kaido Spirit{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h1>{{ car.brand }} {{ car.model }} ({{ car.year }})</h1>
-  {% if user.is_staff %}
-    <div>
-      <a href="{% url 'car_edit' car.id %}" class="btn btn-secondary">Редактировать</a>
-      <a href="{% url 'car_delete' car.id %}" class="btn btn-danger">Удалить</a>
-    </div>
-  {% endif %}
-</div>
-{% with car.images.first as main_image %}
-  {% if main_image %}
-    <img src="{{ main_image.image.url }}" 
-         alt="{{ car }}" 
-         class="img-fluid rounded mb-3" 
-         style="max-height: 400px; object-fit: cover; width: 60%;">
-  {% endif %}
-{% endwith %}
-<table class="table table-bordered w-auto mb-4">
-  <tr><th>Цена</th><td>{{ car.price }} ₽</td></tr>
-  <tr><th>Статус</th><td>{{ car.get_status_display }}</td></tr>
-  <tr><th>Год</th><td>{{ car.year }}</td></tr>
-</table>
 
-{% if user.is_authenticated %}
-  <a href="{% url 'create_order' car.id %}" class="btn btn-primary me-2">Забронировать</a>
-  <a href="{% url 'toggle_favorite' car.id %}" class="btn btn-outline-danger me-2">❤️ В избранное</a>
-{% endif %}
+<a href="{% url 'car_list' %}" style="display:inline-flex;align-items:center;gap:6px;color:var(--text-muted);font-style:italic;font-size:0.88rem;margin-bottom:24px;text-decoration:none;">
+  ← Назад к каталогу
+</a>
 
-<h3 class="mt-4">Пакеты оборудования (through-таблица)</h3>
-{% if active_packages %}
-  <table class="table table-sm">
-    <thead><tr><th>Пакет</th><th>Статус установки</th><th>Примечания</th></tr></thead>
-    <tbody>
-    {% for cp in active_packages %}
-      <tr>
-        <td>{{ cp.package.name }}</td>
-        <td><span class="badge bg-success">{{ cp.get_status_display }}</span></td>
-        <td>{{ cp.notes|default:"-" }}</td>
-      </tr>
+<div class="ks-detail-layout">
+
+  {# ── LEFT: Images + Info ── #}
+  <div>
+    <h1 style="font-family:'Kelly Slab',serif;font-size:2rem;margin-bottom:20px;">{{ car.brand }} {{ car.model }}</h1>
+
+    {# Main image #}
+    {% with car.images.first as main_image %}
+      {% if main_image %}
+        <img src="{{ main_image.image.url }}" id="mainImg" class="ks-detail-main-img" alt="{{ car }}">
+      {% else %}
+        <div style="width:100%;height:320px;background:var(--cream-dark);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:5rem;color:var(--border);margin-bottom:12px;">🚗</div>
+      {% endif %}
+    {% endwith %}
+
+    {# Thumbnails #}
+    {% if car.images.count > 1 %}
+      <div class="ks-detail-thumbs" style="margin-bottom:24px;">
+        {% for img in car.images.all %}
+          <img src="{{ img.image.url }}" class="ks-detail-thumb"
+               onclick="document.getElementById('mainImg').src=this.src" alt="">
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {# History #}
+    {% if car.video_url %}
+      <div style="margin-bottom:20px;">
+        <a href="{{ car.video_url }}" target="_blank" class="btn-ks btn-ks-outline">▶ Видеообзор</a>
+      </div>
+    {% endif %}
+
+    {# Equipment packages #}
+    {% if active_packages %}
+      <h2 class="section-heading" style="margin-top:32px;">Комплектация и модификации</h2>
+      <div class="ks-form-card" style="padding:20px 24px;">
+        {% for cp in active_packages %}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-light);">
+            <div>
+              <div style="font-family:'Kelly Slab',serif;font-size:0.95rem;">{{ cp.package.name }}</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);font-style:italic;">{{ cp.get_status_display }}</div>
+              {% if cp.notes %}<div style="font-size:0.8rem;margin-top:2px;">{{ cp.notes }}</div>{% endif %}
+            </div>
+            <span class="ks-badge ks-badge-green">+{{ cp.package.additional_price|floatformat:0 }} ₽</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {# Reviews #}
+    <h2 class="section-heading" style="margin-top:36px;">Отзывы</h2>
+    {% for review in reviews %}
+      <div class="ks-form-card" style="margin-bottom:14px;padding:18px 22px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+          <strong style="font-family:'Kelly Slab',serif;">{{ review.user.username }}</strong>
+          <small style="color:var(--text-muted);font-style:italic;">{{ review.created_at|date:"d.m.Y" }}</small>
+        </div>
+        <div class="ks-stars" style="margin-bottom:6px;">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
+        <p style="margin:0;font-size:0.9rem;">{{ review.comment }}</p>
+      </div>
+    {% empty %}
+      <div class="ks-empty">Отзывов пока нет. Будьте первым!</div>
     {% endfor %}
-    </tbody>
-  </table>
-{% else %}
-  <p class="text-muted">Нет доступных пакетов.</p>
-{% endif %}
+    {% if user.is_authenticated %}
+      <a href="{% url 'add_review' car.id %}" class="btn-ks btn-ks-outline" style="margin-top:8px;">Написать отзыв</a>
+    {% endif %}
 
-<h3 class="mt-4">Отзывы</h3>
-{# select_related('user') — user уже в памяти, нет доп. запросов #}
-{% for review in reviews %}
-  <div class="card mb-2">
-    <div class="card-body">
-      <strong>{{ review.user.username }}</strong>
-      <span class="text-warning">{{ review.rating }}★</span>
-      <small class="text-muted ms-2">{{ review.created_at|date:"d.m.Y" }}</small>
-      <p class="mb-0">{{ review.comment }}</p>
+    {# Recently viewed #}
+    {% if viewed_cars %}
+      <h2 class="section-heading" style="margin-top:36px;">Вы недавно смотрели</h2>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        {% for v in viewed_cars %}
+          <a href="{{ v.get_absolute_url }}" class="ks-newest-card" style="width:160px;">
+            {% with v.images.first as vi %}
+              {% if vi %}<img src="{{ vi.image.url }}" class="ks-newest-img" alt="{{ v }}">
+              {% else %}<div class="ks-newest-img-ph">🚗</div>{% endif %}
+            {% endwith %}
+            <div class="ks-newest-body">
+              <div class="ks-newest-name">{{ v.brand }} {{ v.model }}</div>
+              <div class="ks-newest-year">{{ v.year }} г.</div>
+              <div class="ks-newest-price">{{ v.price|floatformat:0 }} ₽</div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  {# ── RIGHT: Price panel ── #}
+  <div>
+    <div class="ks-detail-panel">
+      <div class="ks-detail-price">{{ car.price|floatformat:0 }} ₽</div>
+
+      <dl>
+        <div class="ks-detail-meta-row"><dt>Статус</dt>
+          <dd>{% if car.status == 'SL' %}<span class="ks-badge ks-badge-green">В продаже</span>
+              {% elif car.status == 'BK' %}<span class="ks-badge ks-badge-gold">Забронирован</span>
+              {% else %}<span class="ks-badge ks-badge-muted">В архиве</span>{% endif %}</dd></div>
+        <div class="ks-detail-meta-row"><dt>Год выпуска</dt><dd>{{ car.year }}</dd></div>
+        <div class="ks-detail-meta-row"><dt>Марка</dt><dd>{{ car.brand }}</dd></div>
+        <div class="ks-detail-meta-row"><dt>Модель</dt><dd>{{ car.model }}</dd></div>
+        <div class="ks-detail-meta-row"><dt>Добавлено</dt><dd>{{ car.created_at|date:"d.m.Y" }}</dd></div>
+      </dl>
+
+      {% if user.is_authenticated %}
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
+          <a href="{% url 'create_order' car.id %}" class="btn-ks btn-ks-lg" style="text-align:center;">Заказать</a>
+          <form method="post" action="{% url 'toggle_favorite' car.id %}">
+            {% csrf_token %}
+            <button class="btn-ks btn-ks-outline" type="submit" style="width:100%;">❤️ В избранное</button>
+          </form>
+        </div>
+      {% else %}
+        <div style="margin-top:20px;">
+          <a href="{% url 'login' %}" class="btn-ks btn-ks-lg" style="width:100%;text-align:center;">Войдите, чтобы заказать</a>
+        </div>
+      {% endif %}
+
+      {% if car.document %}
+        <div style="margin-top:16px;">
+          <a href="{{ car.document.url }}" target="_blank" class="btn-ks btn-ks-outline btn-ks-sm" style="width:100%;text-align:center;">📄 Документ</a>
+        </div>
+      {% endif %}
+
+      {% if user.is_staff %}
+        <hr class="ks-divider">
+        <div style="display:flex;gap:8px;">
+          <a href="{% url 'car_edit' car.id %}" class="btn-ks btn-ks-outline btn-ks-sm">Изменить</a>
+          <a href="{% url 'car_delete' car.id %}" class="btn-ks btn-ks-sm" style="background:var(--crimson-light);">Удалить</a>
+        </div>
+      {% endif %}
     </div>
   </div>
-{% empty %}
-  <p class="text-muted">Отзывов пока нет.</p>
-{% endfor %}
 
-{% if user.is_authenticated %}
-  <a href="{% url 'add_review' car.id %}" class="btn btn-outline-primary mt-2">Написать отзыв</a>
-{% endif %}
-
-{% if viewed_cars %}
-<h3 class="mt-4">Вы недавно смотрели</h3>
-<div class="row">
-  {% for viewed in viewed_cars %}
-    <div class="col-md-3 mb-2">
-      <div class="card">
-        <div class="card-body">
-          <h6>{{ viewed.brand }} {{ viewed.model }}</h6>
-          <p class="text-muted small">{{ viewed.year }} г. | {{ viewed.price }} ₽</p>
-          <a href="{{ viewed.get_absolute_url }}" class="btn btn-sm btn-outline-primary">Открыть</a>
-        </div>
-      </div>
-    </div>
-  {% endfor %}
 </div>
-{% endif %}
-
-<a href="{% url 'car_list' %}" class="btn btn-link mt-3">← Назад к списку</a>
 {% endblock %}

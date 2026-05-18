@@ -1,22 +1,26 @@
 {% extends 'avto/base.html' %}
-{% block title %}Вход{% endblock %}
+{% block title %}Вход — Kaido Spirit{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-5">
-    <h1>Вход</h1>
-    <div class="card"><div class="card-body">
-      <form method="post">{% csrf_token %}
-        {% for field in form %}
-          <div class="mb-3">
-            <label class="form-label">{{ field.label }}</label>
-            {{ field }}
-            {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
-          </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary w-100">Войти</button>
-      </form>
-    </div></div>
-    <p class="mt-3 text-center">Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
+<div class="ks-auth-wrap">
+  <h1 class="ks-auth-title">Авторизация</h1>
+  <div class="ks-form-card">
+    <form method="post">{% csrf_token %}
+      {% for field in form %}
+        <div class="ks-form-group">
+          <label class="ks-label">{{ field.label }}</label>
+          <input class="ks-input" type="{{ field.field.widget.input_type }}"
+                 name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                 {% if field.value %}value="{{ field.value }}"{% endif %}>
+          {% for error in field.errors %}
+            <div style="color:var(--crimson);font-size:0.8rem;margin-top:4px;">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <button class="btn-ks btn-ks-lg" type="submit" style="width:100%;margin-top:8px;">Войти</button>
+    </form>
   </div>
+  <p style="text-align:center;margin-top:18px;font-style:italic;color:var(--text-muted);">
+    Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a>
+  </p>
 </div>
 {% endblock %}

@@ -1,25 +1,38 @@
 {% extends 'avto/base.html' %}
-{% block title %}Мои заказы{% endblock %}
+{% block title %}Мои заказы — Kaido Spirit{% endblock %}
 {% block content %}
-<h1>Мои заказы</h1>
+
+<h1 class="page-title">Мои заказы</h1>
+
 {% for order in orders %}
-  <div class="card mb-3">
-    <div class="card-header">{{ order }} — {{ order.get_status_display }}</div>
-    <div class="card-body">
-      <p class="text-muted">{{ order.created_at|date:"d.m.Y H:i" }}</p>
-      <ul>
-      {% for item in order.items.all %}
-        <li><a href="{{ item.car.get_absolute_url }}">{{ item.car }}</a></li>
-      {% endfor %}
-      </ul>
-      <a href="{% url 'order_pdf' order.id %}" 
-        class="btn btn-sm btn-outline-danger mt-2" 
-        target="_blank">
-        📄 Скачать квитанцию PDF
-      </a>
+  <div class="ks-form-card" style="margin-bottom:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+      <span style="font-family:'Kelly Slab',serif;font-size:1.1rem;">Заказ #{{ order.id }}</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span class="ks-badge {% if order.status == 'BK' %}ks-badge-gold{% elif order.status == 'CN' %}ks-badge-crimson{% else %}ks-badge-muted{% endif %}">
+          {{ order.get_status_display }}
+        </span>
+        <span style="font-size:0.82rem;color:var(--text-muted);font-style:italic;">{{ order.created_at|date:"d.m.Y H:i" }}</span>
+      </div>
+    </div>
+    {% for item in order.items.all %}
+      <div style="display:flex;align-items:center;gap:14px;padding:8px 0;border-bottom:1px solid var(--border-light);">
+        {% with item.car.images.first as img %}
+          {% if img %}<img src="{{ img.image.url }}" style="width:72px;height:50px;object-fit:cover;border-radius:6px;" alt="">
+          {% else %}<div style="width:72px;height:50px;background:var(--cream-dark);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">🚗</div>{% endif %}
+        {% endwith %}
+        <div>
+          <a href="{{ item.car.get_absolute_url }}" style="font-family:'Kelly Slab',serif;font-size:0.95rem;">{{ item.car }}</a>
+          <div style="font-size:0.8rem;color:var(--text-muted);font-style:italic;">{{ item.car.year }} г.</div>
+        </div>
+        <span class="ks-price" style="margin-left:auto;">{{ item.car.price|floatformat:0 }} ₽</span>
+      </div>
+    {% endfor %}
+    <div style="margin-top:14px;">
+      <a href="{% url 'order_pdf' order.id %}" class="btn-ks btn-ks-outline btn-ks-sm" target="_blank">📄 Квитанция PDF</a>
     </div>
   </div>
 {% empty %}
-  <p class="text-muted">У вас пока нет заказов.</p>
+  <div class="ks-empty">У вас пока нет заказов. <a href="{% url 'car_list' %}">Посмотреть каталог</a></div>
 {% endfor %}
 {% endblock %}

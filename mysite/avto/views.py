@@ -25,7 +25,6 @@ from .forms import CarForm, ServiceForm, ReviewForm, CarEquipmentPackageForm, Re
 
 
 def home(request):
-    return render(request, 'avto/home.html')
 
     q_brand = request.GET.get('q_brand', '').strip()
     q_model = request.GET.get('q_model', '').strip()

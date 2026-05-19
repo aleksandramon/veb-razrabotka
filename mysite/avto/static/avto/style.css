@@ -33,7 +33,7 @@ body {
   background: var(--cream);
   color: var(--text-main);
   font-family: 'Lora', Georgia, serif;
-  font-size: 15px;
+  font-size: 1.25rem;
   line-height: 1.72;
   min-height: 100vh;
   display: flex;
@@ -129,10 +129,11 @@ img { display: block; max-width: 100%; }
 
 /* Nav */
 .ks-nav {
-  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 4px;
 }
+
 .ks-nav a {
   color: rgba(255,255,255,0.88);
   font-family: 'Kelly Slab', serif;
@@ -950,4 +951,89 @@ img { display: block; max-width: 100%; }
   .ks-footer-inner { grid-template-columns: 1fr; text-align: center; }
   .ks-footer-right { text-align: center; }
   .ks-search-widget { padding: 22px 18px; }
+}
+
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: #ffffff;
+    color: #000000;
+    padding: 0.8rem 1rem;
+    z-index: 9999;
+    border-radius: 0 0 8px 8px;
+    text-decoration: none;
+    font-family: 'Kelly Slab', serif;
+}
+
+.skip-link:focus {
+    left: 20px;
+}
+
+@media print {
+
+    body {
+        background: white;
+        color: black;
+        font-size: 12pt;
+    }
+
+    .ks-header,
+    .ks-footer,
+    .btn-ks,
+    .ks-search-widget,
+    .ks-widget-more,
+    .ks-fav-btn {
+        display: none !important;
+    }
+
+    .ks-main {
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .ks-card,
+    .ks-widget,
+    .ks-detail-panel {
+        box-shadow: none;
+        border: 1px solid #999;
+        background: white;
+    }
+
+    img {
+        max-width: 100%;
+        page-break-inside: avoid;
+    }
+
+    a {
+        color: black;
+        text-decoration: none;
+    }
+
+    h1,
+    h2,
+    h3 {
+        color: black;
+    }
+}
+
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 3px solid var(--gold);
+    outline-offset: 3px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
 }

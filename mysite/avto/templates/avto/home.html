@@ -37,8 +37,8 @@
   <form method="get" action="{% url 'home' %}">
     <div class="ks-search-grid">
       <div>
-        <label class="ks-label">Марка</label>
-        <input class="ks-input" type="text" name="q_brand"
+        <label for='brand' class="ks-label">Марка</label>
+        <input id='brand' class="ks-input" type="text" name="q_brand"
                placeholder="Toyota, Nissan…"
                value="{{ q_brand }}" list="brands-dl">
         <datalist id="brands-dl">
@@ -46,20 +46,20 @@
         </datalist>
       </div>
       <div>
-        <label class="ks-label">Модель</label>
-        <input class="ks-input" type="text" name="q_model"
+        <label for="model" class="ks-label">Модель</label>
+        <input id="model" class="ks-input" type="text" name="q_model"
                placeholder="Supra, Silvia…"
                value="{{ q_model }}">
       </div>
       <div>
-        <label class="ks-label">Цена до (₽)</label>
-        <input class="ks-input" type="number" name="q_max_price"
+        <label for="q_max_price" class="ks-label">Цена до (₽)</label>
+        <input id="q_max_price" class="ks-input" type="number" name="q_max_price"
                placeholder="2 000 000"
                value="{{ q_max_price }}">
       </div>
       <div>
-        <label class="ks-label">Сортировка</label>
-        <select class="ks-select" name="q_sort">
+        <label for="q_sort" class="ks-label">Сортировка</label>
+        <select id="q_sort" class="ks-select" name="q_sort">
           <option value="-created_at" {% if q_sort == '-created_at' %}selected{% endif %}>Сначала новые</option>
           <option value="price"       {% if q_sort == 'price'       %}selected{% endif %}>Цена ↑</option>
           <option value="-price"      {% if q_sort == '-price'      %}selected{% endif %}>Цена ↓</option>

@@ -2,7 +2,29 @@ from django.contrib import admin
 from django.db import models as db_models
 from .models import *
 from django.shortcuts import redirect
+from import_export import resources, fields 
+from import_export.admin import ExportMixin 
+from import_export.widgets import ForeignKeyWidget
 
+
+class CarResource(resources.ModelResource):
+    class Meta:
+        model = Car
+        fields = ('id', 'brand', 'model', 'year', 'price', 'status', 'created_at')
+        export_order = ('id', 'brand', 'model', 'year', 'price', 'status', 'created_at')
+
+
+class OrderResource(resources.ModelResource):
+    username = fields.Field(
+        column_name='Покупатель',
+        attribute='user',
+        widget=ForeignKeyWidget(model=User, field='username')
+    )
+
+    class Meta:
+        model = Order
+        fields = ('id', 'username', 'status', 'created_at')
+        export_order = ('id', 'username', 'status', 'created_at')
 
 @admin.register(Users)
 class UsersAdmin(admin.ModelAdmin):
@@ -40,7 +62,8 @@ class CarImageInline(admin.TabularInline):
     extra = 1
 
 @admin.register(Car)
-class CarAdmin(admin.ModelAdmin):
+class CarAdmin(ExportMixin, admin.ModelAdmin):
+    resource_classes = [CarResource]
     list_display = ('brand', 'model', 'year', 'formatted_price', 'status', 'get_equipment_packages', 'created_at')
     list_filter = ('brand', 'year', 'status', 'equipment_packages')
     search_fields = ('brand', 'model', 'year')
@@ -126,7 +149,8 @@ class OrderItemInline(admin.TabularInline):
 
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(ExportMixin, admin.ModelAdmin):
+    resource_classes = [OrderResource]
     list_display = ("id", "user", "status", "created_at")
     list_filter = ("status",)
     inlines = [OrderItemInline]

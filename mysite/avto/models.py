@@ -1,7 +1,8 @@
 from django.db import models
 from django.utils import timezone                       
 from django.contrib.auth.models import User
-from django.urls import reverse                           
+from django.urls import reverse   
+from simple_history.models import HistoricalRecords                        
 
 class CarManager(models.Manager):
     def for_sale(self):
@@ -54,6 +55,8 @@ class EquipmentPackage(models.Model):
     is_active        = models.BooleanField(default=True, verbose_name="Активен")
     created_at       = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
+    history = HistoricalRecords()
+
     def __str__(self):                                     
         return f"{self.get_package_type_display()} — {self.name} (+{self.additional_price:,.0f} ₽)"
 
@@ -88,7 +91,7 @@ class Car(models.Model):
         blank=True,
         verbose_name="Пакеты оборудования",
     )
-
+    history = HistoricalRecords() 
     objects = CarManager()
 
     document = models.FileField(
@@ -154,16 +157,18 @@ class Order(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='orders',                             # 5. related_name
+        related_name='orders', 
         verbose_name="Пользователь",
     )
     status = models.CharField(
         max_length=8,
-        choices=Status.choices,                            # 4. choices
+        choices=Status.choices, 
         default=Status.BOOKING,
         verbose_name="Статус",
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата")
+
+    history = HistoricalRecords()
 
     def __str__(self):                                  
         return f"Заказ #{self.id}"
@@ -202,42 +207,42 @@ class Service(models.Model):
     description = models.TextField(verbose_name="Описание")
     price       = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Цена")
 
-    def __str__(self):                                     # 1. __str__
+    def __str__(self):              
         return self.name
 
     class Meta:
         verbose_name = "Услуга"
         verbose_name_plural = "Услуги"
-        ordering = ['name']                                # 3. Meta ordering
+        ordering = ['name']                      
 
 
 class ServiceOrder(models.Model):
-    class Status(models.TextChoices):                      # 4. choices
+    class Status(models.TextChoices):                  
         BOOKING = 'BK', 'Бронь'
         ARCHIVE = 'AR', 'В архиве'
 
     user    = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='service_orders',                     # 5. related_name
+        related_name='service_orders',                  
         verbose_name="Пользователь",
     )
     service = models.ForeignKey(
         Service,
         on_delete=models.CASCADE,
-        related_name='orders',                             # 5. related_name
+        related_name='orders',                             
         verbose_name="Услуга",
     )
 
     date   = models.DateTimeField(verbose_name="Дата")
     status = models.CharField(
         max_length=8,
-        choices=Status.choices,                            # 4. choices
+        choices=Status.choices,                          
         default=Status.BOOKING,
         verbose_name="Статус",
     )
 
-    def __str__(self):                                     # 1. __str__
+    def __str__(self):                                     
         return f"{self.user} — {self.service}"
 
     class Meta:
@@ -249,18 +254,18 @@ class Favorite(models.Model):
     user     = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favorites',                          # 5. related_name
+        related_name='favorites',                          
         verbose_name="Пользователь",
     )
     car      = models.ForeignKey(
         Car,
         on_delete=models.CASCADE,
-        related_name='favorited_by',                       # 5. related_name
+        related_name='favorited_by',                      
         verbose_name="Автомобиль",
     )
     added_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
 
-    def __str__(self):                                     # 1. __str__
+    def __str__(self):                                    
         return f"{self.user} ❤️ {self.car}"
 
     class Meta:
@@ -271,20 +276,20 @@ class Review(models.Model):
     user       = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='reviews',                            # 5. related_name
+        related_name='reviews',                           
         verbose_name="Пользователь",
     )
     car        = models.ForeignKey(
         Car,
         on_delete=models.CASCADE,
-        related_name='reviews',                            # 5. related_name
+        related_name='reviews',                           
         verbose_name="Автомобиль",
     )
     rating     = models.IntegerField(verbose_name="Оценка")
     comment    = models.TextField(verbose_name="Комментарий")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата")
 
-    def __str__(self):                                     # 1. __str__
+    def __str__(self):                                     
         return f"Отзыв {self.user} — {self.car} ({self.rating}★)"
 
     class Meta:
@@ -322,7 +327,7 @@ class CarEquipmentPackage(models.Model):
     installed_at = models.DateTimeField(null=True, blank=True, verbose_name="Дата установки")
     notes        = models.TextField(blank=True, verbose_name="Примечания")
 
-    def __str__(self):                                     # 1. __str__
+    def __str__(self):                                   
         return f"{self.car} — {self.package} ({self.get_status_display()})"
 
     class Meta:

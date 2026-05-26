@@ -774,16 +774,18 @@ img { display: block; max-width: 100%; }
 @media (max-width: 860px) {
   .ks-catalog-layout { grid-template-columns: 1fr; }
 }
-.ks-cars-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 22px;
-}
+
 @media (max-width: 1024px) {
   .ks-cars-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 600px) {
   .ks-cars-grid { grid-template-columns: 1fr; }
+}
+
+.ks-cars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
 }
 
 .ks-stats-bar {

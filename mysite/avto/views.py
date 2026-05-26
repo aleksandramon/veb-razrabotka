@@ -189,6 +189,7 @@ def car_list(request):
     })
 
 
+'''test2'''
 def car_detail(request, car_id):
     car = get_object_or_404(Car, id=car_id)
     history = request.session.get('viewed_cars', [])

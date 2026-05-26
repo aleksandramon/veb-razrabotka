@@ -6,7 +6,7 @@ from import_export import resources, fields
 from import_export.admin import ExportMixin 
 from import_export.widgets import ForeignKeyWidget
 
-
+'''test'''
 class CarResource(resources.ModelResource):
     class Meta:
         model = Car

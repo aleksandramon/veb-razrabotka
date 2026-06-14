@@ -44,10 +44,13 @@ INSTALLED_APPS = [
     'import_export', 
     'rest_framework',   
     'django_filters', 
+    'django_celery_beat',
+    'silk',
     'avto'
 ]
 
 MIDDLEWARE = [
+    'silk.middleware.SilkyMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -153,3 +156,8 @@ sentry_sdk.init(
     # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
     send_default_pii=True,
 )
+
+CELERY_BROKER_URL        = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND    = 'redis://localhost:6379/0'
+CELERY_TIMEZONE          = 'Europe/Moscow'
+CELERY_BEAT_SCHEDULER    = 'django_celery_beat.schedulers:DatabaseScheduler'

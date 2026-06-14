@@ -24,6 +24,7 @@ def trigger_error(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('silk/', include('silk.urls', namespace='silk')),
     path('', include('avto.urls')), 
     path('sentry-debug/', trigger_error), 
 ]

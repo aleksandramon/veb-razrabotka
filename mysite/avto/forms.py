@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Car, Service, Review, CarEquipmentPackage, Order
+from .models import Car, Service, Review, CarEquipmentPackage, Order, ServiceOrder
 
 class CarForm(forms.ModelForm):
     class Meta:
@@ -181,3 +181,68 @@ class OrderForm(forms.ModelForm):
         widgets = {
             'status': forms.Select(attrs={'class': 'form-select'}),
         }
+
+class ServiceOrderForm(forms.ModelForm):
+    """
+    Форма записи клиента на услугу тюнинга.
+    Проверяет доступность времени и наличие свободных мест.
+    """
+
+    class Meta:
+        model = ServiceOrder
+        fields = ['service', 'date']
+        widgets = {
+            'service': forms.Select(attrs={'class': 'form-select'}),
+            'date': forms.DateTimeInput(
+                attrs={
+                    'class': 'form-control',
+                    'type': 'datetime-local',
+                },
+                format='%Y-%m-%dT%H:%M',
+            ),
+        }
+        labels = {
+            'service': 'Услуга',
+            'date': 'Дата и время записи',
+        }
+
+    def clean_date(self):
+        """Проверяет, что выбранная дата не в прошлом."""
+        date = self.cleaned_data.get('date')
+        if date and date < timezone.now():
+            raise forms.ValidationError("Нельзя записаться на прошедшую дату.")
+        return date
+
+    def clean(self):
+        """
+        Проверяет доступность времени (±60 минут) и наличие свободных мест.
+        """
+        cleaned_data = super().clean()
+        service = cleaned_data.get('service')
+        date    = cleaned_data.get('date')
+
+        if service and date:
+            if service.stock <= 0:
+                raise forms.ValidationError(
+                    f"На услугу «{service.name}» нет свободных мест."
+                )
+            from datetime import timedelta
+            window_start = date - timedelta(minutes=60)
+            window_end   = date + timedelta(minutes=60)
+
+            conflict = ServiceOrder.objects.filter(
+                service=service,
+                date__range=(window_start, window_end),
+                status=ServiceOrder.Status.BOOKING,
+            )
+            if self.instance and self.instance.pk:
+                conflict = conflict.exclude(pk=self.instance.pk)
+
+            if conflict.exists():
+                conflicting = conflict.first()
+                raise forms.ValidationError(
+                    f"Время недоступно: на {conflicting.date.strftime('%d.%m.%Y в %H:%M')} "
+                    f"уже есть запись. Выберите другое время (интервал — не менее 1 часа)."
+                )
+
+        return cleaned_data

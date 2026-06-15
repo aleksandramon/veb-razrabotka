@@ -5,5 +5,13 @@ django-debug-toolbar==4.4.6
 reportlab==4.2.5
 django-simple-history==3.7.0
 django-import-export==4.3.7
+djangorestframework==3.15.2
+django-filter
+django-celery-beat
 openpyxl==3.1.5
 sentry-sdk[django]>=2.0.0
+redis<4.6.0
+celery[redis]>=5.3.0
+django-silk
+gunicorn==23.0.0
+django-allauth==65.9.0

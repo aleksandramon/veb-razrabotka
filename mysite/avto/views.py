@@ -17,6 +17,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.units import cm
 import os
+from django.core.mail import send_mail
 
 from .models import (
     Car, EquipmentPackage, CarEquipmentPackage,

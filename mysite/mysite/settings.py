@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,6 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',        
+    'allauth',                   
+    'allauth.account',             
+    'allauth.socialaccount',      
+    'allauth.socialaccount.providers.google', 
     'debug_toolbar',
     'simple_history',
     'import_export', 
@@ -60,6 +66,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -91,7 +98,7 @@ DATABASES = {
         'NAME': 'myavto',
         'USER': 'admin',
         'PASSWORD': '123456',
-        'HOST': 'localhost',
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': '5432',
     }
 }
@@ -134,7 +141,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 INTERNAL_IPS = ['127.0.0.1',]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -157,7 +165,43 @@ sentry_sdk.init(
     send_default_pii=True,
 )
 
-CELERY_BROKER_URL        = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND    = 'redis://localhost:6379/0'
+CELERY_BROKER_URL        = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND    = 'redis://redis:6379/0'
 CELERY_TIMEZONE          = 'Europe/Moscow'
 CELERY_BEAT_SCHEDULER    = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mailhog'
+EMAIL_PORT = 1025
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = 'Kaido Spirit <no-reply@kaido.local>'
+
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Moscow'
+
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',       
+    'allauth.account.auth_backends.AuthenticationBackend',  
+]
+
+
+LOGIN_REDIRECT_URL  = '/cars/'
+LOGOUT_REDIRECT_URL = '/cars/'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'OAUTH_PKCE_ENABLED': True,
+    }
+}
+
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_VERIFICATION       = 'none'

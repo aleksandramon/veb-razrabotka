@@ -1,2 +1,16 @@
-"__pycache__/" 
-"*.pyc" 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Django
+staticfiles/
+media/
+*.log
+
+# Переменные окружения (содержит пароли!)
+.env
+
+# IDE
+.vscode/
+.idea/
